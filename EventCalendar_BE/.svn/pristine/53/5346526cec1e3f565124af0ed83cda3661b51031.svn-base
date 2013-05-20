@@ -1,0 +1,67 @@
+<%@page import="org.json.simple.JSONObject"%>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ include file= "../blind/connect.jsp" %>
+
+<%
+java.util.Calendar cal = java.util.Calendar.getInstance();
+
+
+String strYear = request.getParameter("year");
+String strMonth = request.getParameter("month");
+String index = request.getParameter("index");
+
+
+
+int year = cal.get(java.util.Calendar.YEAR);
+int month = cal.get(java.util.Calendar.MONTH);
+int date = cal.get(java.util.Calendar.DATE);
+
+
+if(strYear != null)
+{
+  	year = Integer.parseInt(strYear);
+	month = Integer.parseInt(strMonth);
+}
+
+cal.set(year, month, 1);
+
+int startDay = cal.getMinimum(java.util.Calendar.DATE);
+
+int endDay = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+
+int start = cal.get(java.util.Calendar.DAY_OF_WEEK);
+int newLine = 0;
+int j = 0;
+%>
+
+	  
+<%
+
+	String strSQL = "SELECT * FROM calendar WHERE year='" + year + "'and month='" + (month + 1) + "' and day='" + index +"'";
+	ResultSet rs = stmt.executeQuery(strSQL);  		
+  	
+	System.out.println(">>>>>>>>>>>"+strSQL);
+
+	
+	JSONObject jObj = new JSONObject();
+	ArrayList<Map> list=new ArrayList<Map>();
+	Map<String, String> map;
+	while (rs.next()) {
+		map = new HashMap<String, String>();
+		map.put("no",rs.getString("no"));
+		map.put("year",rs.getString("year"));
+		map.put("month",rs.getString("month"));
+		map.put("day",rs.getString("day"));
+		map.put("title",rs.getString("title"));
+		map.put("s_time",rs.getString("s_time"));
+		map.put("e_time",rs.getString("e_time"));
+		map.put("position",rs.getString("position"));
+		map.put("content",rs.getString("content"));
+		list.add(map);
+	}
+	jObj.put("result",list);
+	out.println(jObj.toString());
+	rs.close();
+	stmt.close();
+	conn.close();
+%>

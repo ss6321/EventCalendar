@@ -1,0 +1,161 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"%>
+<%@ page import="java.sql.*, java.util.*"%>
+<% request.setCharacterEncoding("utf-8"); %>
+<%@ include file= "../blind/connect.jsp" %>
+<%
+String year = request.getParameter("year");
+String month = request.getParameter("month");
+String day = request.getParameter("day");
+String no = request.getParameter("no");
+        
+
+String strSQL = "SELECT * FROM calendar WHERE no=" + no;
+ResultSet rs = stmt.executeQuery(strSQL);
+
+rs.next();  
+
+String mapLocation = rs.getString("position");
+%>
+<HTML>
+<HEAD>
+<TITLE>Event Schedule</TITLE>
+ <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAjU0EJWnWPMv7oQ-jjS7dYxSPW5CJgpdgO_s4yyMovOaVh_KvvhSfpvagV18eOyDWu7VytS6Bi1CWxw"
+      type="text/javascript"></script>
+<script language="javascript">
+<!--
+function send(form)
+{
+	form.submit();
+}
+
+function send1(no)
+{
+	ans = confirm(" Are you sure to delete this Event?");
+	if(ans==true){
+		location.href="del.jsp?&no="+no
+	} else {
+		return false;
+	} 
+}
+-->
+</script>
+<!--<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>--> 
+
+<!-- google map -->
+<script type="text/javascript">
+function initialize1() {
+  var myLatlng = new google.maps.LatLng(-34.397, 150.644);
+  var myOptions = {
+  zoom: 8,
+  center: myLatlng,
+  mapTypeId: google.maps.MapTypeId.ROADMAP
+}
+var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+  showAddress("605 E14TH ST NY NY");
+}
+var map = null;
+var geocoder = null;
+function initialize(mapLocation) {
+	//alert(mapLocation);
+	if (GBrowserIsCompatible()) {
+		map = new GMap2(document.getElementById("map_canvas"));
+ 		map.setCenter(new GLatLng(37.4419, -122.1419), 1);
+ 		map.setUIToDefault();
+  		geocoder = new GClientGeocoder();
+  		showAddress(mapLocation);
+  		}
+  }
+function showAddress(address){
+	if (geocoder) {
+		geocoder.getLatLng(address,
+		function(point) {
+			if (!point) {
+				alert(address + " not found");
+			} else {
+				map.setCenter(point, 15);
+				var marker = new GMarker(point, {draggable: true});
+				map.addOverlay(marker);
+				GEvent.addListener(marker, "dragend", function() {
+				 marker.openInfoWindowHtml(marker.getLatLng().toUrlValue(6));
+				});
+				GEvent.addListener(marker, "click", function() {
+				marker.openInfoWindowHtml(marker.getLatLng().toUrlValue(6));
+				});
+				GEvent.trigger(marker, "click");
+			}
+		}
+		);
+	}
+}
+</script>
+</HEAD>
+
+<BODY onload="initialize('<%=mapLocation%>')" onunload="GUnload()">
+	<center>
+		<font size='5'> <b><%=year%> / <%=month%> / <%=day%> Event
+		</b></font>
+		</p>
+
+		<TABLE border='0' width='800' cellpadding='0' cellspacing='0'>
+			<TR>
+				<TD><hr size='1' noshade></TD>
+			</TR>
+		</TABLE>
+		<br>
+
+			<FORM Name='calendar1' method='post'
+				action='edit.jsp?&year=<%=year%>&month=<%=month%>&day=<%=day%>&no=<%=no%>'>
+				<TABLE border='1' width='800' cellpadding='0' cellspacing='0'>
+					<TR>
+						<TD bgcolor='cccccc' width='100' height='30'><p
+								align='center'>
+								<input type='hidden' name='cp_type' value='input'> <font
+									size='2'><b>Title</b></font></TD>
+						<TD bgcolor='ededed'><font size='2'><b><%=rs.getString("title")%></TD>
+					</TR>
+					<TR>
+						<TD bgcolor='cccccc' width='100' height='30'><p
+								align='center'>
+								<font size='2'><b>Date</b></font></TD>
+						<TD bgcolor='ededed'><font size='2'> <b><%=year%>
+									/ <%=month%> / <%=day%></b></font></TD>
+					</TR>
+					<TR>
+						<TD bgcolor='cccccc' width='100' height='30'><p
+								align='center'>
+								<font size='2'><b>Time</b></font></TD>
+						<TD bgcolor='ededed'><font size='2'><b><%=rs.getString("s_time")%>
+									▶ <%=rs.getString("e_time")%></TD>
+					</TR>
+					<TR>
+						<TD bgcolor='cccccc' width='100' height='30'><p
+								align='center'>
+								<font size='2'><b>Location</b></font></TD>
+						<TD bgcolor='ededed'><font size='2'><b><%=rs.getString("position")%></TD>
+					</TR>
+					<TR>
+						<TD height='118' bgcolor='cccccc'><p align='center'>
+								<font size='2'><b>Event</b></font></TD>
+						<TD height='118' bgcolor='ededed'><p>
+								<font size='2'><b><%=rs.getString("content")%></TD>
+					</TR>
+				</TABLE>
+				<br>
+					<div id="map_canvas" style="width: 500px; height: 300px;"></div>
+
+					<TABLE border='0' cellpadding='0' cellspacing='0' width='800'>
+						<TR>
+							<TD height='40' colspan='2'><p align='center'>
+									<input type='button' value='Update' onclick='send(this.form)'>
+										<input type='button' value='Delete' onclick="send1('<%=no%>')">
+											<input type='reset' value='Cancel'
+											onclick='javascript:history.back()'></TD>
+						</TR>
+					</TABLE>
+			</FORM> <%
+rs.close();
+stmt.close();
+conn.close();
+%>
+</BODY>
+</HTML>

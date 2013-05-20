@@ -1,0 +1,2 @@
+serviceClass: nyu.client.GreetingService
+path: 9ED8988D7AF1EFEE472FC0AB1FB54141.gwt.rpc

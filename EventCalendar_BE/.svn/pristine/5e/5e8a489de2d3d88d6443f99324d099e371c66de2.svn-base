@@ -1,0 +1,43 @@
+<%@ page contentType="text/html; charset=utf-8"%>
+<%@ page import="java.sql.*"%>
+<%
+	request.setCharacterEncoding("utf-8");
+%>
+
+<HTML>
+
+<%
+	String id = request.getParameter("id");
+	String pass = request.getParameter("pass");
+	String name = request.getParameter("name");
+	String phone = request.getParameter("phone");
+	String email = request.getParameter("email");
+
+	String check_ok = "yes";
+
+	if (id == "")
+		check_ok = "no";
+
+	if (pass == "")
+		check_ok = "no";
+
+	if (name == "")
+		check_ok = "no";
+
+	Class.forName("com.mysql.jdbc.Driver");
+	String url = "jdbc:mysql://localhost:3306/dbboard";
+	Connection conn = DriverManager.getConnection(url, "root", "1234");
+	Statement stmt = conn.createStatement();
+
+	String strSQL = "INSERT INTO tblmember(id,pass,name,phone,email)";
+		strSQL = strSQL + "VALUES('" + id + "', '" + pass + "', '"
+				+ name + "',";
+		strSQL = strSQL + "'" + phone + "', '" + email + "')";
+		try {
+			System.out.println("query : " + strSQL);
+			stmt.executeUpdate(strSQL);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+%>
+

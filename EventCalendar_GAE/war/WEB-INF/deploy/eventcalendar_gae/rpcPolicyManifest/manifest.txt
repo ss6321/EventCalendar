@@ -1,0 +1,3 @@
+# Module eventcalendar_gae
+# RPC service class, partial path of RPC policy file
+nyu.client.GreetingService, 9ED8988D7AF1EFEE472FC0AB1FB54141.gwt.rpc

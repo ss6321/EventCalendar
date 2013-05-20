@@ -1,0 +1,51 @@
+<%@page import="org.omg.IOP.ServiceContext"%>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.google.gson.GsonBuilder"%>
+<%@page import="com.google.gson.Gson"%>
+<%@ page contentType="text/html; charset=utf-8"%>
+<%@ page import="java.sql.*"%>
+test2
+<%
+	request.setCharacterEncoding("utf-8");
+
+	String id = request.getParameter("id");
+	String pass = request.getParameter("pass");
+	String name = request.getParameter("name");
+	String phone = request.getParameter("phone");
+	String email = request.getParameter("email");
+
+String params = request.getParameter("params");
+Gson gson = new Gson();
+GsonBuilder gsonBuilder = new GsonBuilder();
+/*
+JsonObject jobject = (JsonObject) json;
+gsonBuilder.registerTypeAdapter(User.class, new Users(
+        jobject.get("uid").getAsInt(), 
+        jobject.get("username").getAsString(), 
+        jobject.get("password").getAsString(),
+        jobject.get("email").getAsString(),
+        jobject.get("paid").getAsBoolean(),
+        jobject.get("amount").getAsLong()));
+gson = gsonBuilder.create();
+User user = gson.fromJson(params, User.class); 
+*/
+//System.out.println("receive PARAM::::"+request.getParameter("parameter"));
+	Class.forName("com.mysql.jdbc.Driver");
+	String url = "jdbc:mysql://localhost:3306/dbboard";
+	Connection conn = DriverManager.getConnection(url, "root", "1234");
+	Statement stmt = conn.createStatement();
+	String strSQL = "SELECT id FROM tblmember ";
+	ResultSet rs = null;
+	try {
+	//	System.out.println("query : " + strSQL);
+		rs = stmt.executeQuery(strSQL);
+		//System.out.println("--------------"+rs.next());
+		while(rs.next()){
+			System.out.println(rs.getString("id"));
+		}
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}
+stmt.close();
+conn.close();
+%>test

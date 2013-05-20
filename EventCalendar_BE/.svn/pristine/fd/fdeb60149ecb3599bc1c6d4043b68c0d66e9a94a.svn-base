@@ -1,0 +1,488 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TimeZone;
+
+public class DBManager {
+    final static String url = "jdbc:mysql://localhost:3306/dbboard";
+    final static String id = "root";
+    final static String pwd = "1234";
+    final static String driver = "com.mysql.jdbc.Driver";
+
+    private static Connection getConnection() {
+        try {
+            return DriverManager.getConnection(url, id, pwd);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+/*
+    strSQL = "INSERT INTO tblmember(id,pass,name,phone,email)";
+	strSQL = strSQL + "VALUES('" + id + "', '" + pass + "', '"
+			+ name + "',";
+	strSQL = strSQL + "'" + phone + "', '" + email + "')";
+	try {
+		System.out.println("query : " + strSQL);
+		stmt.executeUpdate(strSQL);
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}
+	*/
+    public static int createNewUser(User u) {
+        Connection conn = getConnection();
+        Statement st = null;
+        try {
+        	String strSQL = "INSERT INTO tblmember(id,pass,name,phone,email)";
+        		strSQL = strSQL + "VALUES('" + u.getId() + "', '" + u.getPass() + "', '"
+        				+ u.getName() + "',";
+        		strSQL = strSQL + "'" + u.getPhone()+ "', '" + u.getEmail() + "')";
+        		
+            st = conn.createStatement();
+    		
+            System.out.println("query : " + strSQL);
+    		int val = st.executeUpdate(strSQL);
+            System.out.println(val);
+            if (val != 0) {
+               // User newUser = getUser(u.email);
+               // if (newUser != null)
+               //     return newUser.uid;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+        	try {
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        return 0;
+    }
+/*
+    public static User getUser(int uid) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        User u = new User();
+        try {
+            prest = conn
+                    .prepareStatement("SELECT uid, username, password, email, paid, amount FROM users WHERE uid = ?");
+            prest.setInt(1, uid);
+            ResultSet rs = prest.executeQuery();
+
+            if (rs.next()) {
+                u.uid = rs.getInt(1);
+                u.username = rs.getString(2);
+                u.password = rs.getString(3);
+                u.email = rs.getString(4);
+                u.paid = rs.getBoolean(5);
+                u.amount = rs.getLong(6);
+
+                return u;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            closeConn(conn);
+        }
+    }
+
+    public static User getUser(String email) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        User u = new User();
+        try {
+            prest = conn
+                    .prepareStatement("SELECT uid, username, password, email, paid, amount FROM users WHERE email = ?");
+            prest.setString(1, email);
+            ResultSet rs = prest.executeQuery();
+
+            if (rs.next()) {
+                u.uid = rs.getInt(1);
+                u.password = rs.getString(2);
+                u.username = rs.getString(3);
+                u.email = rs.getString(4);
+                u.paid = rs.getBoolean(5);
+                u.amount = rs.getLong(6);
+
+                return u;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            closeConn(conn);
+        }
+    }
+    
+    public static User getUser(String email, String password) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        User u = new User();
+        
+        try {
+            prest = conn
+                    .prepareStatement("SELECT uid, password, username, email, paid, amount FROM users WHERE email = ?");
+            prest.setString(1, email);
+            ResultSet rs = prest.executeQuery();
+
+            if (rs.next()) {
+                String pwd = rs.getString(2);
+                if(pwd.equals(password)) {
+                    u.uid = rs.getInt(1);
+                    u.password = rs.getString(2);
+                    u.username = rs.getString(3);
+                    u.email = rs.getString(4);
+                    u.paid = rs.getBoolean(5);
+                    u.amount = rs.getLong(6);                    
+                } else {
+                    u.uid = -1;
+                }
+            } else {
+                u.uid = 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            closeConn(conn);
+        }
+        return u;
+    }
+
+    public static int updateUser(User user) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        try {
+            prest = conn
+                    .prepareStatement("UPDATE users SET username = ?, password = ?, email = ? WHERE uid = ?");
+            prest.setString(1, user.username);
+            prest.setString(2, user.password);
+            prest.setString(3, user.email);
+            prest.setInt(4, user.uid);
+            int val = prest.executeUpdate();
+
+            System.out.println(val);
+            if (val != 0) {
+                return user.uid;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        return 0;
+    }
+    
+    public static int addDonation(int uid) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        try {
+            prest = conn
+                    .prepareStatement("UPDATE users SET paid = true, amount = amount+30 WHERE uid = ?");
+            prest.setInt(1, uid);
+            return prest.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        return 0;
+    }
+
+    public static Event getEvent(int uid, int eid) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        Event ev = null;
+        try {
+            prest = conn.prepareStatement("SELECT `eid`, `uid`, `start`, `stop`, `cid`, `locationName`, " + 
+                                          " `location`, `title`, `description`, `emailAlert`, `alertTime` " + 
+                                          " FROM events WHERE eid = ? and uid = ?");
+            prest.setInt(1, eid);
+            prest.setInt(2, uid);
+            ResultSet rs = prest.executeQuery();
+
+            if (rs.next()) {
+                ev = new Event();
+                
+                ev.eid = rs.getInt(1);
+                ev.uid = rs.getInt(2);
+                ev.start = getEST(rs.getLong(3));
+                ev.stop = getEST(rs.getLong(4));
+                ev.cid = rs.getInt(5);
+                ev.locationName = rs.getString(6);
+                ev.location = rs.getString(7);
+                ev.title = rs.getString(8);
+                ev.description = rs.getString(9);
+                ev.emailAlert = rs.getInt(10);
+                ev.alertTime = getEST(rs.getLong(11));
+            } 
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        
+        return ev;
+    }
+    
+    public static Event getLastEvent(int uid) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        Event ev = null;
+        try {
+            prest = conn.prepareStatement("SELECT `eid`, `uid`, `start`, `stop`, `cid`, `locationName`, " + 
+                                          " `location`, `title`, `description`, `emailAlert`, `alertTime` " + 
+                                          " FROM events WHERE uid = ? and eid = (select max(eid) from events where uid = ?)");
+            prest.setInt(1, uid);
+            prest.setInt(2, uid);
+            ResultSet rs = prest.executeQuery();
+
+            if (rs.next()) {
+                ev = new Event();
+                
+                ev.eid = rs.getInt(1);
+                ev.uid = rs.getInt(2);
+                ev.start = getEST(rs.getLong(3));
+                ev.stop = getEST(rs.getLong(4));
+                ev.cid = rs.getInt(5);
+                ev.locationName = rs.getString(6);
+                ev.location = rs.getString(7);
+                ev.title = rs.getString(8);
+                ev.description = rs.getString(9);
+                ev.emailAlert = rs.getInt(10);
+                ev.alertTime = getEST(rs.getLong(11));
+            } 
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        
+        return ev;
+    }
+    
+    public static int createNewEvent(Event evt) {
+        Connection conn = getConnection();
+        Statement st = null;
+        try {
+            st = conn.createStatement();
+            int val = st
+                    .executeUpdate("INSERT events (uid, cid, title, start, stop, locationName, " +
+                                   " location, description, emailAlert, alertTime) VALUES("
+                            + evt.uid + "," + evt.cid + ","
+                            + "'" + evt.title + "'," + evt.start + "," + evt.stop + ",'" + evt.locationName + "'," 
+                            + "'" + evt.location + "','" + evt.description + "'," + evt.emailAlert + "," + evt.alertTime + ");");
+            System.out.println(val);
+            if (val != 0) {
+                Event nEvt = getLastEvent(evt.uid);
+                if (nEvt != null)
+                    return nEvt.eid;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        return 0;
+    }
+    
+
+    public static int deleteEvent(int uid, int eid) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        try {
+            prest = conn.prepareStatement("DELETE FROM events WHERE uid = ? and eid = ?");
+            prest.setInt(1, uid);
+            prest.setInt(2, eid);
+            prest.executeUpdate();
+            
+            return 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        } finally {
+            closeConn(conn);
+        }
+    }
+
+    public static int updateEvent(Event ev) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        try {
+            prest = conn
+                    .prepareStatement("UPDATE events SET title = ?, start = ?, stop = ?, locationName = ?, " +
+                                   " location = ?, description = ?, emailAlert = ?, alertTime = ? WHERE uid = ? and eid = ?");
+            prest.setString(1, ev.title);
+            prest.setLong(2, ev.start);
+            prest.setLong(3, ev.stop);
+            prest.setString(4, ev.locationName);
+            prest.setString(5, ev.location);
+            prest.setString(6, ev.description);
+            prest.setInt(7, ev.emailAlert);
+            prest.setLong(8, ev.alertTime);
+            prest.setInt(9, ev.uid);
+            prest.setInt(10, ev.eid);
+            
+            int val = prest.executeUpdate();
+
+            System.out.println(val);
+            if (val != 0) {
+                return ev.eid;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        return 0;
+    }
+    
+    private static void closeConn(Connection conn) {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    public static void createNewNotification(Event evt) {
+        User u = getUser(evt.uid);
+        
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        try {
+            prest = conn.prepareStatement("INSERT INTO mails (eid, email, title, message, `when`) VALUES(?, ?, ?, ?, ?);");
+            prest.setInt(1, evt.eid);
+            prest.setString(2, u.email);
+            prest.setString(3, evt.title);
+            prest.setString(4, "Location Name: " + evt.locationName + "\nLocation: " + evt.location + "\nDescription: " + evt.description);
+            prest.setLong(5, evt.alertTime);
+            
+            prest.executeUpdate();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+    }
+
+    public static ArrayList<Event> getEvents(int uid) {
+        ArrayList<Event> events = new ArrayList<Event>();
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        Event ev = null;
+        try {
+            prest = conn.prepareStatement("SELECT `eid`, `uid`, `start`, `stop`, `cid`, `locationName`, " + 
+                                          " `location`, `title`, `description`, `emailAlert`, `alertTime` " + 
+                                          " FROM events WHERE uid = ?");
+            prest.setInt(1, uid);
+            ResultSet rs = prest.executeQuery();
+
+            while (rs.next()) {
+                ev = new Event();
+                
+                ev.eid = rs.getInt(1);
+                ev.uid = rs.getInt(2);
+                ev.start = getEST(rs.getLong(3));
+                ev.stop = getEST(rs.getLong(4));
+                ev.cid = rs.getInt(5);
+                ev.locationName = rs.getString(6);
+                ev.location = rs.getString(7);
+                ev.title = rs.getString(8);
+                ev.description = rs.getString(9);
+                ev.emailAlert = rs.getInt(10);
+                ev.alertTime = getEST(rs.getLong(11));
+                
+                events.add(ev);
+            } 
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        
+        return events;
+    }
+
+    public static List<Email> unsentEmails() {
+        ArrayList<Email> mails = new ArrayList<Email>();
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        Statement st = null;
+        Email m = null;
+        ResultSet rs = null;
+        try {
+            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            st = conn.createStatement();
+            st.executeUpdate("UPDATE mails SET status = 'R' WHERE sent = false and status = 'C' and `when` <= " + now.getTimeInMillis());
+            
+            prest = conn.prepareStatement("SELECT mid, eid, email, title, message, `when` FROM mails WHERE sent = false and status = 'R'");
+            
+            rs = prest.executeQuery();
+    
+            while (rs.next()) {
+                m = new Email();
+                m.setMid(rs.getInt(1));
+                m.setEid(rs.getInt(2));
+                m.setEmail(rs.getString(3));
+                m.setTitle(rs.getString(4));
+                m.setMessage(rs.getString(5));
+                m.setWhen(rs.getLong(6));
+                
+                mails.add(m);
+            } 
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+        
+        return mails;
+    }
+
+    public static void updateEmailSentFlag(ArrayList<Integer> ids) {
+        Connection conn = getConnection();
+        PreparedStatement prest = null;
+        
+        try {
+            Iterator<Integer> it = ids.iterator();
+            prest = conn.prepareStatement("UPDATE `mails` SET `sent`=true, `status`='D' where `mid` = ?");
+            while(it.hasNext()) {
+                int id = it.next();
+                prest.setLong(1, id);
+                prest.addBatch();
+            }
+            prest.executeBatch();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConn(conn);
+        }
+    }  
+    
+    private static long getEST(long utc) {
+        Calendar org = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        org.setTimeInMillis(utc);
+        org.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+        
+        return org.getTimeInMillis();
+    }*/
+}
+
